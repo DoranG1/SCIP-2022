@@ -1,0 +1,70 @@
+```{r}
+# Load the required dplyr and ggplot2 packages as part of the tidyverse wrapper.
+
+# If you don't have tidyverse installed, run the following code just once:
+# install.packages('tidyverse')
+
+library(tidyverse)
+
+# You can probably ignore any warning messages you get.
+```
+
+```{r}
+# Import the OTU data.
+data <- read.table("data.tsv", header=TRUE, sep="\t")
+```
+
+```{r}
+# Add an OTU count variable.
+data_OTUcounts <- data %>% 
+  # Remove rows where the OTU is not actually present.
+  filter(count > 0) %>% 
+  # Group by the three variables that define each unique community.
+  group_by(src_community, passage, abxConcentration) %>% 
+  # Create a new dataframe with variable OTUcount, which is the number 
+  # of observations in each group.
+  summarize(OTUcount = n())
+```
+
+```{r}
+# Plot the OTU counts.
+test <- data_OTUcounts %>% 
+  # Create a new ggplot canvas.
+  ggplot() + 
+  # Draw a line plot on the canvas.
+  geom_line(aes(x=factor(passage), y=OTUcount, 
+                group=abxConcentration, color=factor(abxConcentration))) +
+  # Separate into different panels based on the source community.
+  facet_wrap(~src_community) +
+  # X-axis label.
+  xlab("Passage") +
+  # Y-axis label,
+  ylab("OTU count") +
+  # Plot title.
+  ggtitle("OTU counts over passages") +
+  # Change legend title and manually set colors.
+  scale_color_manual(name="Antibiotic concentration", 
+                     values=c("grey","dark red", "magenta"))
+```
+
+```{r}
+# To create another data frame with two replicates of each community, run the 
+# following code:
+data_replicates <- data %>%
+  # The mutate() function adds a variable as a new column.
+  mutate(replicate=1) %>% 
+  # The rbind() function adds the rows of two data frames together - make sure the 
+  # number of columns in the two data frames is the same.
+  rbind(data %>% mutate(replicate=2))
+
+# Now see if you can re-create the OTU count plot with this new data frame!
+
+# Hint: You may want to use the interaction() function to get the correct groupings
+# between abxConcentration and replicate in the geom_line() call. You can look up
+# this function's documentation by typing ?interaction() into the console.
+# Alternatively, you could also facet by both community and replicate. You can look
+# up relevant documentation with ?facet_wrap() or ?facet_grid().
+
+# Good luck!
+```
+
